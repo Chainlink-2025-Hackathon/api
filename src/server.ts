@@ -449,7 +449,7 @@ app.get('/api/appraisal/:tokenId', authenticateApiKey, (req: Request, res: Respo
 });
 
 // Authenticity verification
-app.post('/api/verify-authenticity', authenticateApiKey, (req: Request, res: Response) => {
+app.post('/api/verify-authenticity', /*authenticateApiKey,*/ (req: Request, res: Response) => {
   const { certificate_hash } = req.body;
   
   if (!certificate_hash) {
