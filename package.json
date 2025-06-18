@@ -1,0 +1,63 @@
+{
+  "name": "chainlink-nft-defi-mock-server",
+  "version": "1.0.0",
+  "description": "Mock server for simulating off-chain data sources for Chainlink NFT DeFi platform",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.0",
+    "axios": "^1.5.0",
+    "mongodb": "^6.3.0",
+    "body-parser": "^1.20.2",
+    "helmet": "^7.0.0",
+    "express-rate-limit": "^6.10.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "multer": "^1.4.5-lts.1",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "@types/node": "^20.5.0",
+    "@types/express": "^4.17.17",
+    "@types/cors": "^2.8.13",
+    "@types/uuid": "^9.0.2",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/bcryptjs": "^2.4.2",
+    "@types/multer": "^1.4.7",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/parser": "^6.4.0",
+    "eslint": "^8.47.0",
+    "nodemon": "^3.0.1",
+    "jest": "^29.6.4",
+    "supertest": "^6.3.3",
+    "@types/jest": "^29.5.4",
+    "@types/supertest": "^2.0.12"
+  },
+  "keywords": [
+    "chainlink",
+    "defi",
+    "nft",
+    "mock",
+    "api",
+    "oracle",
+    "functions",
+    "typescript",
+    "mongodb"
+  ],
+  "author": "Chainlink NFT DeFi Team",
+  "license": "MIT"
+} 
