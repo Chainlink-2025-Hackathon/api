@@ -1,0 +1,110 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Fractionalized NFT DeFi Platform Architecture
+This design outlines a DeFi platform for tokenizing high-value physical assets (e.g. art, collectibles) as NFTs and enabling fractional ownership, lending, auctions, index funds, and on-chain governance. It relies on Ethereum standards (ERC-721, ERC-20, ERC-4626, ERC-2981, etc.) and Chainlink oracles (Functions, CCIP, Automation, Proof of Reserve) for off-chain integrations. Key smart contracts include:
+NFT Minting & Metadata (ERC-721) – Mints a unique NFT representing the physical asset, with metadata linking to authenticity documents (e.g. an IPFS hash of a certificate). The NFT’s TokenID is immutable and ties on-chain ownership to the off-chain asset
+chain.link
+chain.link
+. Metadata can be dynamic (e.g. via Chainlink Functions fetching updates from a museum registry). Physical custody is referenced in metadata, and ERC-2981 can encode royalty splits.
+Fractionalization Contract – A lock-up vault where the ERC-721 NFT is deposited (“locked”), and in exchange it mints fungible ERC-20 tokens representing fractional shares
+coinbureau.com
+. Each ERC-20 token equals a pro-rata stake in the NFT. For example, Unic.ly’s architecture uses a Converter contract to split an NFT into “uTokens” (ERC-20) that can be freely traded, and requires token holders to vote to unlock the underlying NFT
+arxiv.org
+. Our contract similarly mints fractional tokens when an NFT is staked. When all fractions are redeemed (burned), the original NFT can be unlocked and returned to its holder.
+Collateralized Lending Contract – Enables NFT-backed loans by accepting a locked NFT (or its fractional ERC-20s) as collateral and issuing a fungible loan (e.g. USDC). This can be a peer-to-peer loan market (like NFTfi) or a pooled lending protocol. For example, NFTfi is a peer-to-peer protocol where borrowers collateralize NFTs for fixed-term loans
+docs.nftfi.com
+. In our system, borrowers deposit their NFT/fractions into the lending contract and receive stablecoin, with an agreed LTV and interest rate. If the borrower repays on time, they reclaim the NFT; if not, the collateral is liquidated.
+Auction / Marketplace Contract – Handles liquidations and sales. If a loan defaults or a liquidation is triggered, the NFT or its fractional tokens are automatically auctioned. For instance, NFTfi allows lenders to acquire defaulted NFTs at a discount
+docs.nftfi.com
+. Similarly, we implement an on-chain auction (e.g. Dutch or English style) or AMM. The auction contract takes collateral from the lending contract and sells it to the highest bidder. (Unic.ly’s Converter contract fractionalizes NFTs and “facilitates auctions for these fractionalized assets”
+arxiv.org
+.) Auction rules (reserve price, duration, settlement) can be governed by DAO parameters. Chainlink VRF could provide unbiased randomness for auction processes if needed.
+Index Fund / Vault Contract (ERC-4626) – A vault holding a basket of fractional ERC-20 tokens (e.g. pieces of multiple artworks) and issuing a new ERC-20 share token. This follows the ERC-4626 vault standard: users deposit fractions into the vault and receive “vault shares” that represent fractional ownership of the entire pool
+alchemy.com
+. For example, an art index token might hold fractions of 10 famous paintings. When underlying assets yield (via rents or sales), the vault’s total collateral grows, and each share’s value increases. The vault contract automates deposits/withdrawals of the basket and can integrate with other DeFi (e.g. collateralizing the vault or earning yield).
+Governance Contract (DAO / Multisig) – A DAO or multisig that holds protocol parameters and treasury. It can govern aspects like loan LTV limits, auction rules, fees, index composition, and treasury spending. Optionally, governance tokens can be issued to fractional holders. On-chain governance can use common frameworks (e.g. Compound Governor, Aragon) to allow proposal creation and voting. Multi-chain DAO messages (for cross-chain bridged tokens) could leverage Chainlink CCIP.
+A summary table of smart contracts and their roles:
+Smart Contract	Purpose & Features	Relevant Standards / Tools
+NFT Minting & Metadata	Issues ERC-721 tokens for physical assets. Stores unique TokenID and metadata (e.g. IPFS link to certificate). May update metadata via oracles.	ERC-721 (or ERC-1155); ERC-2981 for royalty info; Chainlink Functions for metadata updates
+chain.link
+Fractionalization Vault	Locks an NFT and mints ERC-20 tokens representing fractional ownership
+coinbureau.com
+. Allows burning fractions to redeem NFT.	Custom ERC-20 (or use ERC-4626 if vault-like); follows Unic.ly model
+arxiv.org
+ for splitting.
+Collateral Lending	Manages NFT-backed loans. Accepts NFT or fractions as collateral, issues stablecoin loans, tracks interest. Liquidation when LTV breach.	Similar to NFTfi (peer-to-peer)
+docs.nftfi.com
+ or Aave/Vault pattern; uses Chainlink price feeds for valuations.
+Auction Marketplace	Liquidates defaulted collateral via on-chain auctions or sales. Supports NFTs and fractional ERC-20. Can implement AMM for fractions.	On-chain auction logic; could integrate with OpenSea-compatible auction or custom AMM; see Unic.ly Converter auctions
+arxiv.org
+.
+Index Fund / Vault	Aggregates multiple ERC-20 fractions into a vault. Users deposit fractions, get ERC-4626 shares. Automates rebalancing of art basket and yield distribution.	ERC-4626 vault standard (shares as fractional ownership)
+alchemy.com
+; Chainlink price feeds for portfolio valuation.
+Governance (DAO)	Decentralized admin of protocol parameters (LTVs, fees, index weights). May use token-weighted votes or multisig control.	DAO frameworks (Compound Aragon); Chainlink CCIP to propagate votes cross-chain if needed.
+Smart Contract Workflows
+NFT ↔ Fractional Tokens: To fractionalize an asset, its ERC-721 NFT is transferred into the Fractionalization Vault contract, which then mints a fixed supply of ERC-20 share tokens
+coinbureau.com
+. Holders of these ERC-20s own a pro-rata share of the NFT. They can trade these tokens freely. If a majority later agrees to “unlock” the NFT, all ERC-20s are burned and the NFT is returned to the owner (similar to Unic.ly’s voting-unlock mechanism
+arxiv.org
+).
+Loan Issuance: A borrower sends their NFT (or fractions) to the Lending contract as collateral. The contract computes a loan amount using an oracle-based valuation (e.g. 50% of floor price). It then sends stablecoins (USDC, DAI) to the borrower. The borrower repays over time (with interest) to retrieve the NFT. All balances and due dates are tracked on-chain. This mirrors NFTfi’s model: “NFTfi is a peer-to-peer… protocol for taking loans collateralized against your NFTs”
+docs.nftfi.com
+. Our loan contract extends this to support fraction tokens as collateral as well.
+Liquidation Workflow: The Lending contract continuously monitors loan health. When a loan’s collateral value falls below a threshold (e.g. due to market price changes), an automated liquidation is triggered. This can be done via a Chainlink Automation (see below). The collateral (NFT or fractions) is then sent to the Auction contract. An on-chain auction is started (e.g. 24-hour auction), where bidders stake crypto to buy the collateral. Proceeds repay the loan and any excess goes to the original owner. NFTfi’s practice of discount auctions (“chance to acquire NFTs at discounts”
+docs.nftfi.com
+) ensures rapid liquidation.
+Royalty & Rental Distributions: If the real-world asset generates income (e.g. art rental fees or secondary market royalties), the protocol automatically distributes funds to fraction holders. We use ERC-2981 in the NFT contract to define a royalty percentage. On a sale, the royalty amount is sent to a Distribution contract. Chainlink Automation jobs periodically trigger the Distribution contract to split and send royalties/rents to all current ERC-20 fraction holders pro-rata. This ensures creators or the DAO get paid automatically. (Chainlink Automation can also check an escrowed rental fee account and push payouts monthly.)
+Governance Flows: Token holders (or designated DAO members) can propose changes (e.g. adjust LTV caps, add assets to index). Proposals are posted on-chain; voters cast votes using governance tokens or voice (multisig). Once a proposal passes quorum, the Governance contract enacts changes (e.g. updating parameters in other contracts). For cross-chain fractional tokens, Chainlink CCIP can relay governance votes from one chain to another (enabling unified DAO across L1/L2).
+Chainlink Oracle Integrations
+To bridge off-chain data and automation, we integrate multiple Chainlink services:
+Chainlink Functions (Off-Chain Data): We use Chainlink Functions to fetch external data not available on-chain. This includes appraisal reports, authenticity checks, and museum registry queries. For example, a Chainlink Function can call a custodian’s API to retrieve the latest appraisal value or confirm the certificate of authenticity for an artwork. The data is cryptographically signed and written to the NFT’s metadata or to a verification contract. In the Mosaic art tokenization project, appraisers’ reports are “securely brought on-chain” via Chainlink Functions
+devpost.com
+. Similarly, our system will call Chainlink Functions to validate that the physical asset is genuine and to update its estimated market value on-chain. Market prices (floor price, auction results) are also fed on-chain via Chainlink Price Feeds or Functions from marketplaces, keeping the protocol’s valuations up to date.
+Chainlink CCIP (Cross-Chain Interoperability): To allow fractional tokens and NFTs to move across Ethereum, L2s, or sidechains, we integrate Chainlink CCIP. This lets users bridge their art fractions or NFT digital twins to other chains while retaining custody context. For example, a user could transfer a painting’s NFT from Ethereum to a Polygon or Solana sidechain via CCIP. Chainlink CCIP provides secure cross-chain messaging: “enabling token transfers across blockchains… enabling cross-chain real-world assets”
+chain.link
+. In Mosaic’s implementation, CCIP was used “to let [the] work token owner transfer the asset cross-chain, and send cross-chain message back to the contract”
+devpost.com
+. We similarly use CCIP so that governance or sales orders can be sent along with token transfers, and so that auctions or DAO proposals remain valid across chains.
+Chainlink Automation (Keepers): Many actions are time- or event-triggered. Chainlink Automation jobs will watch for loan deadlines, price thresholds, or scheduled events. For example, a time-based Automation can periodically check loan collateralization (using price feeds) and automatically call the Liquidation function if undercollateralized
+devpost.com
+. It can also schedule royalty/rental payouts (e.g. monthly splits to token holders) or initiate auctions at predetermined times. Mosaic used both log-based and time-based automation “to enhance the efficiency of the work verification process… conducting work verification every month or trimester”
+devpost.com
+. We employ a similar approach to trigger periodic validations (via Functions) and financial disbursements, minimizing manual intervention.
+Chainlink Proof of Reserve: To ensure each token is truly backed by a real asset, we integrate a Proof-of-Reserve check. A Chainlink Oracle network will poll the custodian or museum’s API (or an on-chain registry) to verify the physical asset remains in storage and properly insured. This on-chain PoR reporting provides “reliable and timely monitoring of reserve assets”
+chain.link
+. If the custodian’s API reports inconsistency (e.g. asset moved without authorization), the contract could automatically freeze fractional transfers or halt minting. This creates “seamless, decentralized proof of reserves” by verifying the physical collateral and writing its status on-chain
+chain.link
+. Users thus gain strong cryptographic guarantees that each NFT is backed by an actual collectible.
+Illustration: Below is a simplified architecture table showing how contracts and Chainlink services interconnect:
+Contract / Service	Function
+ERC-721 Mint (NFT)	Represents the physical art; metadata includes custody proof. Chainlink Functions fetch updates (e.g. authenticity or appraisal).
+Fractional Vault	Locks NFT, issues ERC-20 shares
+coinbureau.com
+. Chainlink PoR ensures NFT is still held; Automation handles unlocking.
+ERC-20 Fractions	Fungible tokens for asset shares. Used as collateral or in vaults. Integrated with price feeds for valuation.
+Lending Contract	Manages loans using NFT/fractions as collateral
+docs.nftfi.com
+. Chainlink Price Feeds and Automation monitor LTV and trigger liquidations.
+Auction Contract	Conducts sales of defaulted collateral (NFT or fractions). Uses Chainlink for price oracles, optional VRF.
+Index Vault (ERC-4626)	Holds baskets of fractions, issues vault shares
+alchemy.com
+. Chainlink oracles update basket value; Automation rebalances if needed.
+Governance DAO	Controls protocol parameters (e.g. LTV, fees, index composition). Chainlink CCIP relays cross-chain votes; Automation executes passed proposals.
+Each contract interacts via Solidity function calls, and events trigger oracle updates. For example, when a new NFT is minted, the Mint contract emits an event that a Chainlink oracle listens to, fetching the custody proof. When a loan is created, the Lending contract calls an external oracle to price the NFT. If a loan falls below collateralization, the Lending contract emits an event that Automation picks up to call liquidate() on the Auction contract. Throughout, standards like ERC-721 (for unique tokens), ERC-20 (for fungible shares), ERC-4626 (for vault shares), and ERC-2981 (for royalties) provide interoperability. Established DeFi practices are applied: NFTfi’s collateral model
+docs.nftfi.com
+ guides our lending, and Aave’s transparent lending and liquidation techniques inspire our loan/auction design. Sources: This design draws on existing NFT and DeFi protocols and Chainlink documentation. For example, Chainlink’s NFT education notes that physical assets can be represented by NFTs with off-chain custody
+chain.link
+. NFT lending protocols like NFTfi illustrate how to structure collateralized loans
+docs.nftfi.com
+. Real-world examples such as Mosaic and Unic.ly demonstrate fractionalization and auction mechanisms
+devpost.com
+arxiv.org
+. Chainlink’s product docs explain how Functions, CCIP, Automation, and Proof of Reserve can be applied to tokenized assets
+devpost.com
+chain.link
+chain.link
+, informing the oracle integrations outlined above. Each component in our architecture is informed by these sources and relevant Ethereum standards.
