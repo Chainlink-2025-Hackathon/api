@@ -38,7 +38,7 @@ export class LendingController {
             const result = await this.features.approveTokenForLending({ amount });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json(response);
+            res.status(200).json({data: response.contractCall, message: response.message ,success: true});
         } catch (error) {
             console.error('Error approving token for lending:', error);
             res.status(500).json({
@@ -64,7 +64,7 @@ export class LendingController {
             const result = await this.features.provideLiquidity({ amount });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json(response);
+            res.status(200).json({data: response.contractCall, message: response.message ,success: true});
         } catch (error) {
             console.error('Error providing liquidity:', error);
             res.status(500).json({
@@ -94,7 +94,7 @@ export class LendingController {
             });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json(response);
+            res.status(200).json({data: response.contractCall, message: response.message ,success: true});
         } catch (error) {
             console.error('Error withdrawing liquidity:', error);
             res.status(500).json({
@@ -120,7 +120,7 @@ export class LendingController {
             const result = await this.features.approveAssetForLoan({ tokenId: tokenId.toString() });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json(response);
+            res.status(200).json({data: response.contractCall, message: response.message ,success: true});
         } catch (error) {
             console.error('Error approving asset for loan:', error);
             res.status(500).json({
@@ -210,7 +210,7 @@ export class LendingController {
             });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json(response);
+            res.status(200).json({data: response.contractCall, message: response.message ,success: true});
         } catch (error) {
             console.error('Error creating NFT loan:', error);
             res.status(500).json({
@@ -236,7 +236,7 @@ export class LendingController {
             const result = await this.features.repayLoan({ loanId, amount });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json(response);
+            res.status(200).json({data: response.contractCall, message: response.message ,success: true});
         } catch (error) {
             console.error('Error repaying loan:', error);
             res.status(500).json({
@@ -262,7 +262,7 @@ export class LendingController {
             const result = await this.features.liquidateLoan({ loanId });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json(response);
+            res.status(200).json({data: response.contractCall, message: response.message ,success: true});
         } catch (error) {
             console.error('Error liquidating loan:', error);
             res.status(500).json({

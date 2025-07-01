@@ -84,7 +84,7 @@ export class AssetController {
             });
             const response = this.convertBigIntToNumber(result);
 
-            return res.status(200).json({status:true, data:response.contractCall, message: "Asset mint tx created"});
+            return res.status(200).json({success:true, data:response.contractCall, message: "Asset mint tx created"});
         } catch (error) {
             console.error('Error minting asset:', error);
             return res.status(500).json({

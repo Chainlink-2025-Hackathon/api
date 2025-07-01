@@ -42,7 +42,7 @@ export class TokenController {
             });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json(response);
+            res.status(200).json({data: response.contractCall, message: response.message ,success: true});
         } catch (error) {
             console.error('Error approving token:', error);
             res.status(500).json({
@@ -68,7 +68,7 @@ export class TokenController {
             const result = await this.features.mintMockUSDC({ amount });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json(response);
+            res.status(200).json({data: response.contractCall, message: response.message ,success: true});
         } catch (error) {
             console.error('Error minting USDC:', error);
             res.status(500).json({

@@ -40,7 +40,7 @@ export class FractionalizationController {
 
             res.status(200).json({
                 success: true,
-                data: response,
+                data: response.contractCall,
                 message: 'Asset approved for fractionalization'
             });
         } catch (error) {
@@ -74,7 +74,7 @@ export class FractionalizationController {
 
             res.status(200).json({
                 success: true,
-                data: response,
+                data: response.contractCall,
                 message: 'Asset fractionalized successfully'
             });
         } catch (error) {
@@ -107,7 +107,7 @@ export class FractionalizationController {
 
             res.status(200).json({
                 success: true,
-                data: response,
+                data: response.contractCall,
                 message: 'Asset redeemed successfully'
             });
         } catch (error) {
@@ -355,7 +355,7 @@ export class FractionalizationController {
 
             res.status(200).json({
                 success: true,
-                data: response,
+                data: response.contractCall,
                 message: 'Reserve verification requested successfully'
             });
         } catch (error) {
