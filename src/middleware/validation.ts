@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { body, param, query, validationResult } from 'express-validator';
+
+// Use require for express-validator to avoid module compatibility issues
+const { body, param, query, validationResult } = require('express-validator');
 
 /**
  * Middleware to handle validation errors

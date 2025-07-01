@@ -24,7 +24,7 @@ export class TokenController {
     }
 
     // POST /api/tokens/approve
-    approveToken = async (req: Request, res: Response) => {
+    approveToken = async (req: any, res: any) => {
         try {
             const { tokenAddress, amount, spender } = req.body;
             
@@ -37,11 +37,12 @@ export class TokenController {
 
             const result = await this.features.approveToken({
                 tokenAddress,
-                amount,
-                spender 
+                amount: BigInt(amount),
+                spender
             });
             const response = this.convertBigIntToNumber(result);
-            res.status(200).json({status:true, data:response, message: "Token approved"});
+
+            res.status(200).json(response);
         } catch (error) {
             console.error('Error approving token:', error);
             res.status(500).json({
@@ -53,20 +54,28 @@ export class TokenController {
     };
 
     // POST /api/tokens/mint-usdc
-    mintUSDC = async (req: Request, res: Response) => {
+    mintUSDC = async (req: any, res: any) => {
         try {
             const { amount } = req.body;
+            
             if (!amount) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing required fields: amount'
+                    message: 'Amount is required'
                 });
             }
-            const result = await this.features.mintMockUSDC({amount});
+
+            const result = await this.features.mintMockUSDC({ amount });
             const response = this.convertBigIntToNumber(result);
-            res.status(200).json({status:true, data:response.contractCall, message: "USDC minted"});
+
+            res.status(200).json(response);
         } catch (error) {
             console.error('Error minting USDC:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to mint USDC',
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
         }
-    }
+    };
 } 

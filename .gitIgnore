@@ -9,3 +9,5 @@ node_modules
 .env.production
 error.log
 combined.log
+dist
+.cursor

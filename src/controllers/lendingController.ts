@@ -24,18 +24,21 @@ export class LendingController {
     }
 
     // POST /api/lending/approve-token-for-lending
-    approveTokenForLending = async (req: Request, res: Response) => {
+    approveTokenForLending = async (req: any, res: any) => {
         try {
             const { amount } = req.body;
+            
             if (!amount) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing required fields: amount'
+                    message: 'Amount is required'
                 });
             }
-            const result = await this.features.approveTokenForLending({ amount });  
+
+            const result = await this.features.approveTokenForLending({ amount });
             const response = this.convertBigIntToNumber(result);
-            res.status(200).json({status:true, data:response.contractCall, message: "Token approved for lending"});
+
+            res.status(200).json(response);
         } catch (error) {
             console.error('Error approving token for lending:', error);
             res.status(500).json({
@@ -44,24 +47,24 @@ export class LendingController {
                 error: error instanceof Error ? error.message : 'Unknown error'
             });
         }
-    }
+    };
 
     // POST /api/lending/provide-liquidity
-    provideLiquidity = async (req: Request, res: Response) => {
+    provideLiquidity = async (req: any, res: any) => {
         try {
-            const { tokenAddress, amount } = req.body;
+            const { amount } = req.body;
             
             if (!amount) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing required fields: tokenAddress, amount'
+                    message: 'Amount is required'
                 });
             }
 
             const result = await this.features.provideLiquidity({ amount });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json({status:true, data:response.contractCall, message: "Liquidity provided"});
+            res.status(200).json(response);
         } catch (error) {
             console.error('Error providing liquidity:', error);
             res.status(500).json({
@@ -73,7 +76,7 @@ export class LendingController {
     };
 
     // POST /api/lending/withdraw-liquidity
-    withdrawLiquidity = async (req: Request, res: Response) => {
+    withdrawLiquidity = async (req: any, res: any) => {
         try {
             const { lpTokenAmount, tokenAddress, amount } = req.body;
             
@@ -90,7 +93,8 @@ export class LendingController {
                 amount 
             });
             const response = this.convertBigIntToNumber(result);
-            res.status(200).json({status:true, data:response, message: "Liquidity withdrawn"});
+
+            res.status(200).json(response);
         } catch (error) {
             console.error('Error withdrawing liquidity:', error);
             res.status(500).json({
@@ -102,7 +106,7 @@ export class LendingController {
     };
 
     // POST /api/lending/approve-asset
-    approveAssetForLoan = async (req: Request, res: Response) => {
+    approveAssetForLoan = async (req: any, res: any) => {
         try {
             const { tokenId } = req.body;
             
@@ -113,9 +117,10 @@ export class LendingController {
                 });
             }
 
-            const result = await this.features.approveAssetForLoan({ tokenId });
+            const result = await this.features.approveAssetForLoan({ tokenId: tokenId.toString() });
             const response = this.convertBigIntToNumber(result);
-            res.status(200).json({status:true, data:response.contractCall, message: "Asset approved for loan"});
+
+            res.status(200).json(response);
         } catch (error) {
             console.error('Error approving asset for loan:', error);
             res.status(500).json({
@@ -127,7 +132,7 @@ export class LendingController {
     };
 
     // GET /api/lending/approval-status/:tokenId
-    checkLendingApprovalStatus = async (req: Request, res: Response) => {
+    checkLendingApprovalStatus = async (req: any, res: any) => {
         try {
             const { tokenId } = req.params;
             
@@ -139,10 +144,10 @@ export class LendingController {
             }
 
             const isApproved = await this.features.isNFTApprovedForLending({ tokenId });
-            const response = this.convertBigIntToNumber(isApproved);
+
             res.status(200).json({
                 success: true,
-                data: { isApproved: response },
+                data: { isApproved },
                 message: 'Lending approval status retrieved successfully'
             });
         } catch (error) {
@@ -156,21 +161,20 @@ export class LendingController {
     };
 
     // GET /api/lending/recommended-amount/:tokenId/:loanTokenAddress
-    getRecommendedLoanAmount = async (req: Request, res: Response) => {
+    getRecommendedLoanAmount = async (req: any, res: any) => {
         try {
             const { tokenId } = req.params;
             
-            if (!tokenId ) {
+            if (!tokenId) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Token ID required'
+                    message: 'Token ID is required'
                 });
             }
 
-            const recommendedAmount = await this.features.getRecommendedLoanAmount({ 
-                tokenId 
-            });
-            const response = this.convertBigIntToNumber(recommendedAmount);
+            const recommendation = await this.features.getRecommendedLoanAmount({ tokenId });
+            const response = this.convertBigIntToNumber(recommendation);
+
             res.status(200).json({
                 success: true,
                 data: response,
@@ -187,25 +191,26 @@ export class LendingController {
     };
 
     // POST /api/lending/create-loan
-    createNFTLoan = async (req: Request, res: Response) => {
+    createNFTLoan = async (req: any, res: any) => {
         try {
             const { tokenId, amount, intrestRate, duration } = req.body;
-
-            if (!tokenId || !amount  || !duration) {
+            
+            if (!tokenId || !amount || !intrestRate || !duration) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing required fields:  tokenId, amount, duration'
+                    message: 'Missing required fields: tokenId, amount, intrestRate, duration'
                 });
             }
 
             const result = await this.features.createNFTLoan({
-                tokenId,
+                tokenId: tokenId.toString(),
                 amount,
                 intrestRate,
                 duration
             });
             const response = this.convertBigIntToNumber(result);
-            res.status(200).json({status:true, data:response.contractCall, message: "NFT loan created"});
+
+            res.status(200).json(response);
         } catch (error) {
             console.error('Error creating NFT loan:', error);
             res.status(500).json({
@@ -217,7 +222,7 @@ export class LendingController {
     };
 
     // POST /api/lending/repay-loan
-    repayLoan = async (req: Request, res: Response) => {
+    repayLoan = async (req: any, res: any) => {
         try {
             const { loanId, amount } = req.body;
             
@@ -230,7 +235,8 @@ export class LendingController {
 
             const result = await this.features.repayLoan({ loanId, amount });
             const response = this.convertBigIntToNumber(result);
-            res.status(200).json({status:true, data:response, message: "Loan repaid"});
+
+            res.status(200).json(response);
         } catch (error) {
             console.error('Error repaying loan:', error);
             res.status(500).json({
@@ -242,7 +248,7 @@ export class LendingController {
     };
 
     // POST /api/lending/liquidate-loan
-    liquidateLoan = async (req: Request, res: Response) => {
+    liquidateLoan = async (req: any, res: any) => {
         try {
             const { loanId } = req.body;
             
@@ -256,11 +262,7 @@ export class LendingController {
             const result = await this.features.liquidateLoan({ loanId });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json({
-                success: true,
-                data: response,
-                message: 'Loan liquidated successfully'
-            });
+            res.status(200).json(response);
         } catch (error) {
             console.error('Error liquidating loan:', error);
             res.status(500).json({
@@ -272,7 +274,7 @@ export class LendingController {
     };
 
     // GET /api/lending/loan/:loanId
-    getLoanInfo = async (req: Request, res: Response) => {
+    getLoanInfo = async (req: any, res: any) => {
         try {
             const { loanId } = req.params;
             
@@ -302,7 +304,7 @@ export class LendingController {
     };
 
     // GET /api/lending/total-owed/:loanId
-    calculateTotalOwed = async (req: Request, res: Response) => {
+    calculateTotalOwed = async (req: any, res: any) => {
         try {
             const { loanId } = req.params;
             
@@ -315,6 +317,7 @@ export class LendingController {
 
             const totalOwed = await this.features.calculateTotalOwed({ loanId: parseInt(loanId) });
             const response = this.convertBigIntToNumber(totalOwed);
+
             res.status(200).json({
                 success: true,
                 data: { totalOwed: response },
@@ -331,7 +334,7 @@ export class LendingController {
     };
 
     // GET /api/lending/liquidatable/:loanId
-    isLiquidatable = async (req: Request, res: Response) => {
+    isLiquidatable = async (req: any, res: any) => {
         try {
             const { loanId } = req.params;
             
@@ -342,15 +345,15 @@ export class LendingController {
                 });
             }
 
-            const isLiquidatable = await this.features.isLiquidatable({ loanId: parseInt(loanId) });
-            const response = this.convertBigIntToNumber(isLiquidatable);
+            const liquidatable = await this.features.isLiquidatable({ loanId: parseInt(loanId) });
+
             res.status(200).json({
                 success: true,
-                data: { isLiquidatable: response },
+                data: { isLiquidatable: liquidatable },
                 message: 'Liquidation status retrieved successfully'
             });
         } catch (error) {
-            console.error('Error checking liquidation status:', error);
+            console.error('Error checking if loan is liquidatable:', error);
             res.status(500).json({
                 success: false,
                 message: 'Failed to check liquidation status',
@@ -360,7 +363,7 @@ export class LendingController {
     };
 
     // GET /api/lending/user-loans/:userAddress
-    getUserLoans = async (req: Request, res: Response) => {
+    getUserLoans = async (req: any, res: any) => {
         try {
             const { userAddress } = req.params;
             
@@ -371,8 +374,9 @@ export class LendingController {
                 });
             }
 
-            const userLoans = await this.features.getUserLoans({ userAddress });
-            const response = this.convertBigIntToNumber(userLoans);
+            const loanIds = await this.features.getUserLoans({ userAddress });
+            const response = this.convertBigIntToNumber(loanIds);
+
             res.status(200).json({
                 success: true,
                 data: response,
@@ -389,10 +393,13 @@ export class LendingController {
     };
 
     // GET /api/lending/active-loans
-    getActiveLoans = async (req: Request, res: Response) => {
+    getActiveLoans = async (req: any, res: any) => {
         try {
-            const activeLoans = await this.features.getActiveLoans({ userAddress: '' });
+            const { userAddress } = req.query;
+            
+            const activeLoans = await this.features.getActiveLoans({ userAddress: userAddress as string });
             const response = this.convertBigIntToNumber(activeLoans);
+
             res.status(200).json({
                 success: true,
                 data: response,
@@ -409,10 +416,13 @@ export class LendingController {
     };
 
     // GET /api/lending/liquidatable-loans
-    getLiquidatableLoans = async (req: Request, res: Response) => {
+    getLiquidatableLoans = async (req: any, res: any) => {
         try {
-            const liquidatableLoans = await this.features.getLiquidatableLoans({ userAddress: '' });
+            const { userAddress } = req.query;
+            
+            const liquidatableLoans = await this.features.getLiquidatableLoans({ userAddress: userAddress as string });
             const response = this.convertBigIntToNumber(liquidatableLoans);
+
             res.status(200).json({
                 success: true,
                 data: response,
@@ -429,7 +439,7 @@ export class LendingController {
     };
 
     // GET /api/lending/health-ratio/:loanId
-    calculateLoanHealthRatio = async (req: Request, res: Response) => {
+    calculateLoanHealthRatio = async (req: any, res: any) => {
         try {
             const { loanId } = req.params;
             
@@ -441,7 +451,8 @@ export class LendingController {
             }
 
             const healthRatio = await this.features.calculateLoanHealthRatio({ loanId: parseInt(loanId) });
-            const response = this.convertBigIntToNumber(healthRatio);   
+            const response = this.convertBigIntToNumber(healthRatio);
+
             res.status(200).json({
                 success: true,
                 data: { healthRatio: response },

@@ -25,7 +25,7 @@ export class AssetController {
     }
 
     // POST /api/assets/metadata
-    createMetadata = async (req: Request, res: Response) => {
+    createMetadata = async (req: any, res: any) => {
         try {
             const { name, description, image, attributes, options } = req.body;
             
@@ -46,14 +46,14 @@ export class AssetController {
 
             const response = this.convertBigIntToNumber(metadata);
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 data: response,
                 message: 'Metadata created successfully'
             });
         } catch (error) {
             console.error('Error creating metadata:', error);
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 message: 'Failed to create metadata',
                 error: error instanceof Error ? error.message : 'Unknown error'
@@ -62,7 +62,7 @@ export class AssetController {
     };
 
     // POST /api/assets/mint
-    mintAsset = async (req: Request, res: Response) => {
+    mintAsset = async (req: any, res: any) => {
         try {
             const { to, assetType, physicalLocation, appraisalValueUSD, custodian, authenticityCertHash, metadataURI } = req.body;
             
@@ -84,11 +84,10 @@ export class AssetController {
             });
             const response = this.convertBigIntToNumber(result);
 
-
-            res.status(200).json({status:true, data:response.contractCall, message: "Asset mint tx created"});
+            return res.status(200).json({status:true, data:response.contractCall, message: "Asset mint tx created"});
         } catch (error) {
             console.error('Error minting asset:', error);
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 message: 'Failed to mint asset',
                 error: error instanceof Error ? error.message : 'Unknown error'
@@ -97,7 +96,7 @@ export class AssetController {
     };
 
     // GET /api/assets/user/:userAddress
-    getUserAssets = async (req: Request, res: Response) => {
+    getUserAssets = async (req: any, res: any) => {
         try {
             const { userAddress } = req.params;
             
@@ -112,14 +111,14 @@ export class AssetController {
 
             const response = this.convertBigIntToNumber(assets);
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 data: response,
                 message: 'User assets retrieved successfully'
             });
         } catch (error) {
             console.error('Error getting user assets:', error);
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 message: 'Failed to get user assets',
                 error: error instanceof Error ? error.message : 'Unknown error'
@@ -128,7 +127,7 @@ export class AssetController {
     };
 
     // GET /api/assets/:tokenId/info
-    getAssetInfo = async (req: Request, res: Response) => {
+    getAssetInfo = async (req: any, res: any) => {
         try {
             const { tokenId } = req.params;
             
@@ -142,14 +141,14 @@ export class AssetController {
             const assetInfo = await this.features.getAssetInfo({ tokenId });
             const response = this.convertBigIntToNumber(assetInfo);
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 data: response,
                 message: 'Asset info retrieved successfully'
             });
         } catch (error) {
             console.error('Error getting asset info:', error);
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 message: 'Failed to get asset info',
                 error: error instanceof Error ? error.message : 'Unknown error'
@@ -158,7 +157,7 @@ export class AssetController {
     };
 
     // GET /api/assets/:tokenId/owner
-    getAssetOwner = async (req: Request, res: Response) => {
+    getAssetOwner = async (req: any, res: any) => {
         try {
             const { tokenId } = req.params;
             
@@ -172,14 +171,14 @@ export class AssetController {
             const owner = await this.features.getOwnerOfAsset({ tokenId });
             const response = this.convertBigIntToNumber(owner);
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 data: { owner: response },
                 message: 'Asset owner retrieved successfully'
             });
         } catch (error) {
             console.error('Error getting asset owner:', error);
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 message: 'Failed to get asset owner',
                 error: error instanceof Error ? error.message : 'Unknown error'
@@ -188,7 +187,7 @@ export class AssetController {
     };
 
     // GET /api/assets/balance/:userAddress
-    getAssetBalance = async (req: Request, res: Response) => {
+    getAssetBalance = async (req: any, res: any) => {
         try {
             const { userAddress } = req.params;
             
@@ -202,14 +201,14 @@ export class AssetController {
             const balance = await this.features.getBalanceOfAsset({ userAddress });
             const response = this.convertBigIntToNumber(balance);   
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 data: { balance: response },
                 message: 'Asset balance retrieved successfully'
             });
         } catch (error) {
             console.error('Error getting asset balance:', error);
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 message: 'Failed to get asset balance',
                 error: error instanceof Error ? error.message : 'Unknown error'
@@ -218,7 +217,7 @@ export class AssetController {
     };
 
     // GET /api/assets/:tokenId/appraisal-history
-    getAppraisalHistory = async (req: Request, res: Response) => {
+    getAppraisalHistory = async (req: any, res: any) => {
         try {
             const { tokenId } = req.params;
             
@@ -230,15 +229,16 @@ export class AssetController {
             }
 
             const history = await this.features.getAppraisalHistory({ tokenId });
-            const response = this.convertBigIntToNumber(history);       
-            res.status(200).json({
+            const response = this.convertBigIntToNumber(history);
+
+            return res.status(200).json({
                 success: true,
                 data: response,
                 message: 'Appraisal history retrieved successfully'
             });
         } catch (error) {
             console.error('Error getting appraisal history:', error);
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 message: 'Failed to get appraisal history',
                 error: error instanceof Error ? error.message : 'Unknown error'

@@ -1,10 +1,10 @@
 import { ethers } from 'ethers';
 import winston from 'winston';
-import { createServices, ServiceConfig } from '../services';
+import { Features } from '../services/features';
 import { AssetController } from '../controllers/assetController';
 import { LendingController } from '../controllers/lendingController';
-import { AuctionController } from '../controllers/auctionController';
 import { FractionalizationController } from '../controllers/fractionalizationController';
+import { TokenController } from '../controllers/tokenController';
 
 // Logger configuration
 const logger = winston.createLogger({
@@ -40,6 +40,7 @@ export interface ApiServiceConfig {
     lendingContract: string;
     auctionContract: string;
     indexVault: string;
+    launchpadContract: string;
     governanceContract?: string;
     governanceToken?: string;
   };
@@ -57,29 +58,29 @@ export function initializeApiServices(config: ApiServiceConfig) {
     // Create ethers wallet
     const signer = new ethers.Wallet(config.privateKey);
 
-    // Service configuration
-    const serviceConfig: ServiceConfig = {
+    // Features configuration
+    const featuresConfig = {
       networkConfig: config.networkConfig,
       contractAddresses: config.contractAddresses,
-      signer,
-      logger
+      usageType: 'Backend' as const,
+      signer
     };
 
-    // Initialize services
-    const services = createServices(serviceConfig);
+    // Initialize Features service
+    const features = new Features(featuresConfig);
 
     // Initialize controllers
     const controllers = {
-      assetController: new AssetController(services.assetService, logger),
-      lendingController: new LendingController(services.lendingService, logger),
-      auctionController: new AuctionController(services.auctionService, logger),
-      fractionalizationController: new FractionalizationController(services.fractionalizationService, logger)
+      assetController: new AssetController(features),
+      lendingController: new LendingController(features),
+      fractionalizationController: new FractionalizationController(features),
+      tokenController: new TokenController(features)
     };
 
     logger.info('API services initialized successfully');
 
     return {
-      services,
+      features,
       controllers,
       logger
     };
@@ -91,7 +92,7 @@ export function initializeApiServices(config: ApiServiceConfig) {
 
 // Default configuration (can be overridden by environment variables)
 export const getDefaultConfig = (): ApiServiceConfig => {
-  return {
+  const config: ApiServiceConfig = {
     networkConfig: {
       chainId: parseInt(process.env.CHAIN_ID || '11155111'), // Sepolia testnet
       name: process.env.NETWORK_NAME || 'sepolia',
@@ -103,11 +104,14 @@ export const getDefaultConfig = (): ApiServiceConfig => {
       lendingContract: process.env.LENDING_CONTRACT || '0x0000000000000000000000000000000000000000',
       auctionContract: process.env.AUCTION_CONTRACT || '0x0000000000000000000000000000000000000000',
       indexVault: process.env.INDEX_VAULT_CONTRACT || '0x0000000000000000000000000000000000000000',
-      governanceContract: process.env.GOVERNANCE_CONTRACT,
-      governanceToken: process.env.GOVERNANCE_TOKEN
+      launchpadContract: process.env.LAUNCHPAD_CONTRACT || '0x0000000000000000000000000000000000000000',
+      ...(process.env.GOVERNANCE_CONTRACT && { governanceContract: process.env.GOVERNANCE_CONTRACT }),
+      ...(process.env.GOVERNANCE_TOKEN && { governanceToken: process.env.GOVERNANCE_TOKEN })
     },
     privateKey: process.env.PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000'
   };
+  
+  return config;
 };
 
 // Validation function
@@ -140,6 +144,10 @@ export function validateConfig(config: ApiServiceConfig): boolean {
 
   if (config.contractAddresses.indexVault === '0x0000000000000000000000000000000000000000') {
     errors.push('INDEX_VAULT_CONTRACT environment variable is required');
+  }
+
+  if (config.contractAddresses.launchpadContract === '0x0000000000000000000000000000000000000000') {
+    errors.push('LAUNCHPAD_CONTRACT environment variable is required');
   }
 
   if (errors.length > 0) {

@@ -23,9 +23,8 @@ export class FractionalizationController {
         return obj;
     }
 
-
     // POST /api/fractionalization/approve
-    approveAssetForFractionalization = async (req: Request, res: Response) => {
+    approveAssetForFractionalization = async (req: any, res: any) => {
         try {
             const { tokenId } = req.body;
             
@@ -36,10 +35,14 @@ export class FractionalizationController {
                 });
             }
 
-            const result = await this.features.approveAssetForFractionalization({ tokenId });
+            const result = await this.features.approveAssetForFractionalization({ tokenId: tokenId.toString() });
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json({status:true, data:response.contractCall, message: "Asset approved for fractionalization"});
+            res.status(200).json({
+                success: true,
+                data: response,
+                message: 'Asset approved for fractionalization'
+            });
         } catch (error) {
             console.error('Error approving asset for fractionalization:', error);
             res.status(500).json({
@@ -51,7 +54,7 @@ export class FractionalizationController {
     };
 
     // POST /api/fractionalization/fractionalize
-    fractionalizeAsset = async (req: Request, res: Response) => {
+    fractionalizeAsset = async (req: any, res: any) => {
         try {
             const { tokenId, fractionalSupply, reservePrice } = req.body;
             
@@ -63,14 +66,17 @@ export class FractionalizationController {
             }
 
             const result = await this.features.fractionalizeAsset({
-                tokenId,
+                tokenId: tokenId.toString(),
                 fractionalSupply,
                 reservePrice
             });
-
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json({status:true, data:response.contractCall, message: "Asset fractionalized"});
+            res.status(200).json({
+                success: true,
+                data: response,
+                message: 'Asset fractionalized successfully'
+            });
         } catch (error) {
             console.error('Error fractionalizing asset:', error);
             res.status(500).json({
@@ -82,7 +88,7 @@ export class FractionalizationController {
     };
 
     // POST /api/fractionalization/redeem
-    redeemAsset = async (req: Request, res: Response) => {
+    redeemAsset = async (req: any, res: any) => {
         try {
             const { fractionalizedTokenContract, amount } = req.body;
             
@@ -97,10 +103,13 @@ export class FractionalizationController {
                 fractionalizedTokenContract,
                 amount
             });
-
             const response = this.convertBigIntToNumber(result);
 
-            res.status(200).json({status:true, data:response, message: "Asset redeemed"});
+            res.status(200).json({
+                success: true,
+                data: response,
+                message: 'Asset redeemed successfully'
+            });
         } catch (error) {
             console.error('Error redeeming asset:', error);
             res.status(500).json({
@@ -112,7 +121,7 @@ export class FractionalizationController {
     };
 
     // GET /api/fractionalization/approval-status/:tokenId
-    checkApprovalStatus = async (req: Request, res: Response) => {
+    checkApprovalStatus = async (req: any, res: any) => {
         try {
             const { tokenId } = req.params;
             
@@ -124,10 +133,10 @@ export class FractionalizationController {
             }
 
             const isApproved = await this.features.isNFTApprovedForFractionalization({ tokenId });
-            const response = this.convertBigIntToNumber(isApproved);
+
             res.status(200).json({
                 success: true,
-                data: { isApproved: response },
+                data: { isApproved },
                 message: 'Approval status retrieved successfully'
             });
         } catch (error) {
@@ -141,7 +150,7 @@ export class FractionalizationController {
     };
 
     // GET /api/fractionalization/asset/:assetId
-    getFractionalizedAsset = async (req: Request, res: Response) => {
+    getFractionalizedAsset = async (req: any, res: any) => {
         try {
             const { assetId } = req.params;
             
@@ -152,8 +161,9 @@ export class FractionalizationController {
                 });
             }
 
-            const asset = await this.features.getFractionalizedAsset({ assetId });
-            const response = this.convertBigIntToNumber(asset);
+            const assetInfo = await this.features.getFractionalizedAsset({ assetId });
+            const response = this.convertBigIntToNumber(assetInfo);
+
             res.status(200).json({
                 success: true,
                 data: response,
@@ -170,7 +180,7 @@ export class FractionalizationController {
     };
 
     // GET /api/fractionalization/reserve/:assetId
-    getReserveData = async (req: Request, res: Response) => {
+    getReserveData = async (req: any, res: any) => {
         try {
             const { assetId } = req.params;
             
@@ -183,6 +193,7 @@ export class FractionalizationController {
 
             const reserveData = await this.features.getReserveData({ assetId });
             const response = this.convertBigIntToNumber(reserveData);
+
             res.status(200).json({
                 success: true,
                 data: response,
@@ -199,7 +210,7 @@ export class FractionalizationController {
     };
 
     // GET /api/fractionalization/token-info/:tokenContract
-    getFractionalizedAssetInfo = async (req: Request, res: Response) => {
+    getFractionalizedAssetInfo = async (req: any, res: any) => {
         try {
             const { tokenContract } = req.params;
             
@@ -210,44 +221,45 @@ export class FractionalizationController {
                 });
             }
 
-            const info = await this.features.getFractionalizedAssetInfo({ 
+            const tokenInfo = await this.features.getFractionalizedAssetInfo({ 
                 fractionalizedTokenContract: tokenContract 
             });
-            const response = this.convertBigIntToNumber(info);
+            const response = this.convertBigIntToNumber(tokenInfo);
+
             res.status(200).json({
                 success: true,
                 data: response,
-                message: 'Fractionalized asset info retrieved successfully'
+                message: 'Token info retrieved successfully'
             });
         } catch (error) {
-            console.error('Error getting fractionalized asset info:', error);
+            console.error('Error getting token info:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to get fractionalized asset info',
+                message: 'Failed to get token info',
                 error: error instanceof Error ? error.message : 'Unknown error'
             });
         }
     };
 
     // POST /api/fractionalization/verify-token
-    verifyFractionalizedToken = async (req: Request, res: Response) => {
+    verifyFractionalizedToken = async (req: any, res: any) => {
         try {
-            const { fractionalizedTokenContract } = req.body;
+            const { tokenContract } = req.body;
             
-            if (!fractionalizedTokenContract) {
+            if (!tokenContract) {
                 return res.status(400).json({
                     success: false,
                     message: 'Token contract address is required'
                 });
             }
 
-            const isVerified = await this.features.verifyFractionalizedToken({ 
-                fractionalizedTokenContract 
+            const isValid = await this.features.verifyFractionalizedToken({
+                fractionalizedTokenContract: tokenContract
             });
-            const response = this.convertBigIntToNumber(isVerified);
+
             res.status(200).json({
                 success: true,
-                data: { isVerified: response },
+                data: { isValid },
                 message: 'Token verification completed'
             });
         } catch (error) {
@@ -261,7 +273,7 @@ export class FractionalizationController {
     };
 
     // POST /api/fractionalization/token-value
-    getTokenValue = async (req: Request, res: Response) => {
+    getTokenValue = async (req: any, res: any) => {
         try {
             const { fractionalizedTokenContract, amount } = req.body;
             
@@ -272,15 +284,16 @@ export class FractionalizationController {
                 });
             }
 
-            const value = await this.features.getTokenValue({ 
-                fractionalizedTokenContract, 
-                amount 
+            const value = await this.features.getTokenValue({
+                fractionalizedTokenContract,
+                amount
             });
             const response = this.convertBigIntToNumber(value);
+
             res.status(200).json({
                 success: true,
                 data: { value: response },
-                message: 'Token value retrieved successfully'
+                message: 'Token value calculated successfully'
             });
         } catch (error) {
             console.error('Error getting token value:', error);
@@ -293,7 +306,7 @@ export class FractionalizationController {
     };
 
     // GET /api/fractionalization/balance/:assetId/:userAddress
-    getAssetTokenBalance = async (req: Request, res: Response) => {
+    getAssetTokenBalance = async (req: any, res: any) => {
         try {
             const { assetId, userAddress } = req.params;
             
@@ -304,25 +317,29 @@ export class FractionalizationController {
                 });
             }
 
-            const balance = await this.features.getAssetTokenBalance({ assetId, userAddress });
-            const response = this.convertBigIntToNumber(balance);       
+            const balance = await this.features.getAssetTokenBalance({
+                assetId,
+                userAddress
+            });
+            const response = this.convertBigIntToNumber(balance);
+
             res.status(200).json({
                 success: true,
                 data: { balance: response },
-                message: 'Asset token balance retrieved successfully'
+                message: 'Token balance retrieved successfully'
             });
         } catch (error) {
-            console.error('Error getting asset token balance:', error);
+            console.error('Error getting token balance:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to get asset token balance',
+                message: 'Failed to get token balance',
                 error: error instanceof Error ? error.message : 'Unknown error'
             });
         }
     };
 
     // POST /api/fractionalization/request-verification
-    requestReserveVerification = async (req: Request, res: Response) => {
+    requestReserveVerification = async (req: any, res: any) => {
         try {
             const { assetId } = req.body;
             
@@ -335,7 +352,12 @@ export class FractionalizationController {
 
             const result = await this.features.requestReserveVerification({ assetId });
             const response = this.convertBigIntToNumber(result);
-            res.status(200).json({status:true, data:response, message: "Reserve verification requested"});
+
+            res.status(200).json({
+                success: true,
+                data: response,
+                message: 'Reserve verification requested successfully'
+            });
         } catch (error) {
             console.error('Error requesting reserve verification:', error);
             res.status(500).json({
@@ -347,7 +369,7 @@ export class FractionalizationController {
     };
 
     // GET /api/fractionalization/verification-status/:assetId
-    getReserveVerificationStatus = async (req: Request, res: Response) => {
+    getReserveVerificationStatus = async (req: any, res: any) => {
         try {
             const { assetId } = req.params;
             
@@ -360,11 +382,12 @@ export class FractionalizationController {
 
             const status = await this.features.getReserveVerificationStatus({ assetId });
             const response = this.convertBigIntToNumber(status);
+
             res.status(200).json({
                 success: true,
                 data: response,
-                message: 'Reserve verification status retrieved successfully'
-            }); 
+                message: 'Verification status retrieved successfully'
+            });
         } catch (error) {
             console.error('Error getting verification status:', error);
             res.status(500).json({

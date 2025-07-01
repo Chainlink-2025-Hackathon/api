@@ -15,8 +15,8 @@ interface ApiConfig {
         lendingContract: string;
         auctionContract: string;
         indexVault: string;
-        governanceContract?: string | undefined;
-        governanceToken?: string | undefined;
+        governanceContract?: string;
+        governanceToken?: string;
         launchpadContract: string;
     };
     usageType: 'Backend' | 'Frontend';

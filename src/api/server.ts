@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import { createApiRoutes } from '../routes';
+import { createApiRoutes } from '../routes/api';
 import { initializeApiServices, getDefaultConfig, validateConfig } from '../config/serviceConfig';
 
 // Load environment variables
@@ -78,10 +78,10 @@ class ApiServer {
       }
 
       // Initialize services and controllers
-      const { controllers } = initializeApiServices(config);
+      const { features } = initializeApiServices(config);
 
       // Setup API routes
-      this.app.use('/api', createApiRoutes(controllers));
+      this.app.use('/api', createApiRoutes(features));
 
       // Root endpoint
       this.app.get('/', (req: Request, res: Response) => {
